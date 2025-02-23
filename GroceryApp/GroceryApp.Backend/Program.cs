@@ -42,3 +42,5 @@ app.MapPost("/api/upload", async (IFormFile file, IReceiptService receiptService
     .Produces(StatusCodes.Status400BadRequest);
 
 app.Run();
+
+public partial class Program;
