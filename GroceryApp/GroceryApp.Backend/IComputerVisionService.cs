@@ -1,7 +1,6 @@
-namespace GroceryApp.Backend
+namespace GroceryApp.Backend;
+
+public interface IComputerVisionService
 {
-    public interface IComputerVisionService
-    {
-        Task<string> AnalyzeReceiptAsync(string imageUrl);
-    }
+    Task<string> AnalyzeReceiptAsync(string imageUrl);
 }

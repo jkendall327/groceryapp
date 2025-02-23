@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace GroceryApp.Backend.Models;
 
 public class ReceiptData
