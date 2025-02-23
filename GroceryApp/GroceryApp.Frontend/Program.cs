@@ -1,9 +1,13 @@
 using GroceryApp.Frontend.Components;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+// Register HttpClient service
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
