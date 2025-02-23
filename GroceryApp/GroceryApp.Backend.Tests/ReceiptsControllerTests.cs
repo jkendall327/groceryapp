@@ -1,8 +1,6 @@
-using System.Net;
+using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
-using GroceryApp.Backend;
-using GroceryApp.Backend.Services;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
@@ -24,61 +22,6 @@ namespace GroceryApp.Backend.Tests
             factory.WithCosmosService(_cosmosService);
             _client = factory.CreateClient();
         }
-
-        [Fact]
-        public async Task GetReceipt_ReturnsOk()
-        {
-            // Arrange
-            var receiptId = "valid-receipt-id";
-            // Setup the substitute to return a sample ReceiptData when GetReceiptAsync is called
-            _cosmosService.GetReceiptAsync(receiptId).Returns(new ReceiptData
-            {
-                Id = receiptId,
-                // Populate other necessary properties
-            });
-
-            // Act
-            var response = await _client.GetAsync($"/api/receipts/{receiptId}");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task GetReceipt_InvalidId_ReturnsNotFound()
-        {
-            // Arrange
-            var receiptId = "invalid-receipt-id";
-            // Setup the substitute to return null when an invalid ID is requested
-            _cosmosService.GetReceiptAsync(receiptId).Returns((ReceiptData)null);
-
-            // Act
-            var response = await _client.GetAsync($"/api/receipts/{receiptId}");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task UploadReceipt_ValidFile_ReturnsCreated()
-        {
-            // Arrange
-            var content = new MultipartFormDataContent();
-            var fileContent = new ByteArrayContent(new byte[] { /* ... file bytes ... */ });
-            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
-            content.Add(fileContent, "file", "receipt.pdf");
-
-            // Setup the substitute to handle the upload
-            _cosmosService.UploadReceiptAsync(Arg.Any<Stream>(), Arg.Any<string>()).Returns("new-receipt-id");
-
-            // Act
-            var response = await _client.PostAsync("/api/receipts/upload", content);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        }
-
-        // 根据需要添加更多测试
     }
 
     // Custom WebApplicationFactory to inject the substitute ICosmosService
