@@ -41,6 +41,9 @@ app.MapPost("/api/upload", async (IFormFile file, IReceiptService receiptService
     .Produces(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status400BadRequest);
 
+// Map Health Check endpoint
+app.MapHealthChecks("/health");
+
 app.Run();
 
 public partial class Program;

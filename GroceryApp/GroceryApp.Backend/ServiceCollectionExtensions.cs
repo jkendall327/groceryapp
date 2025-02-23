@@ -101,6 +101,7 @@ public static class ServiceCollectionExtensions
         services.AddComputerVisionServices(configuration);
         services.AddLlmServices(configuration);
         services.AddJwtAuthentication(configuration);
+        services.AddHealthChecks();
 
         return services;
     }
