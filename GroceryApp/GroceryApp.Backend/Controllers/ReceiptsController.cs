@@ -1,5 +1,4 @@
 using GroceryApp.Backend.Models;
-using GroceryApp.Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -12,13 +11,11 @@ namespace GroceryApp.Backend.Controllers;
 public class ReceiptsController : ControllerBase
 {
     private readonly ICosmosService _cosmosService;
-    private readonly IReceiptService _receiptService;
     private readonly ILogger<ReceiptsController> _logger;
 
-    public ReceiptsController(ICosmosService cosmosService, IReceiptService receiptService, ILogger<ReceiptsController> logger)
+    public ReceiptsController(ICosmosService cosmosService, ILogger<ReceiptsController> logger)
     {
         _cosmosService = cosmosService;
-        _receiptService = receiptService;
         _logger = logger;
     }
 
@@ -76,55 +73,5 @@ public class ReceiptsController : ControllerBase
 
         _logger.LogInformation("MarkItemsAsUsed: Successfully marked items as used.");
         return Ok("Selected products have been marked as used.");
-    }
-
-    /// <summary>
-    /// Uploads a receipt file and processes it.
-    /// </summary>
-    /// <param name="file">The receipt file to upload.</param>
-    /// <returns>Result of the upload operation.</returns>
-    [HttpPost("upload")]
-    public async Task<IActionResult> UploadReceipt([FromForm] IFormFile file)
-    {
-        _logger.LogInformation("UploadReceipt called.");
-
-        var result = await _receiptService.UploadReceiptAsync(file, _logger);
-
-        if (result is BadRequestObjectResult badRequest)
-        {
-            return BadRequest(badRequest.Value);
-        }
-        if (result is UnauthorizedObjectResult unauthorized)
-        {
-            return Unauthorized(unauthorized.Value);
-        }
-        if (result is NotFoundResult notFound)
-        {
-            return NotFound();
-        }
-        // Handle other result types as needed
-
-        return Created(string.Empty, result);
-    }
-
-    /// <summary>
-    /// Retrieves a specific receipt by ID.
-    /// </summary>
-    /// <param name="receiptId">The ID of the receipt to retrieve.</param>
-    /// <returns>The requested receipt.</returns>
-    [HttpGet("{receiptId}")]
-    public async Task<IActionResult> GetReceipt(string receiptId)
-    {
-        _logger.LogInformation("GetReceipt called with ReceiptID: {ReceiptId}.", receiptId);
-
-        var receipt = await _cosmosService.GetReceiptAsync(receiptId);
-        if (receipt == null)
-        {
-            _logger.LogWarning("GetReceipt: Receipt with ID {ReceiptId} not found.", receiptId);
-            return NotFound();
-        }
-
-        _logger.LogInformation("GetReceipt: Returning receipt with ID {ReceiptId}.", receiptId);
-        return Ok(receipt);
     }
 }
