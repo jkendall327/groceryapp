@@ -1,4 +1,5 @@
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
+using System.Threading.Tasks;
 
 namespace GroceryApp.Backend
 {
@@ -12,6 +13,30 @@ namespace GroceryApp.Backend
             // Initialize Computer Vision client, etc.
         }
 
-        // Implement methods for IComputerVisionService
+        public async Task<string> AnalyzeReceiptAsync(string imageUrl)
+        {
+            var ocrResult = await _computerVisionClient.RecognizePrintedTextAsync(true, imageUrl);
+            
+            if (ocrResult == null || ocrResult.Regions == null)
+            {
+                return "No text detected.";
+            }
+
+            var extractedText = string.Empty;
+
+            foreach (var region in ocrResult.Regions)
+            {
+                foreach (var line in region.Lines)
+                {
+                    foreach (var word in line.Words)
+                    {
+                        extractedText += word.Text + " ";
+                    }
+                    extractedText += "\n";
+                }
+            }
+
+            return extractedText.Trim();
+        }
     }
 }

@@ -4,7 +4,10 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Rest;
+using System.IO;
+using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,7 +76,7 @@ app.MapGet("/weatherforecast",
     .WithName("GetWeatherForecast");
 
 // New API Endpoint for Uploading Receipt Images
-app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService) =>
+app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService, IComputerVisionService computerVisionService) =>
 {
     if (file == null || file.Length == 0)
     {
@@ -83,7 +86,15 @@ app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService) =>
     var fileName = Path.GetFileName(file.FileName);
     using var stream = file.OpenReadStream();
     var fileUrl = await blobService.UploadReceiptAsync(stream, fileName);
-    return Results.Ok(new { Url = fileUrl });
+
+    // Call Azure Computer Vision to perform OCR
+    var ocrText = await computerVisionService.AnalyzeReceiptAsync(fileUrl);
+
+    // Optionally, you can store the OCR result in Cosmos DB here using ICosmosService
+    // var cosmosService = app.Services.GetRequiredService<ICosmosService>();
+    // await cosmosService.StoreOcrResultAsync(new OcrResult { FileUrl = fileUrl, Text = ocrText });
+
+    return Results.Ok(new { Url = fileUrl, OCRText = ocrText });
 })
 .WithName("UploadReceipt")
 .Accepts<IFormFile>("multipart/form-data")
@@ -148,7 +159,7 @@ public class BlobService : IBlobService
 
 public interface IComputerVisionService
 {
-    // Define methods for interacting with Azure Computer Vision
+    Task<string> AnalyzeReceiptAsync(string imageUrl);
 }
 
 public class ComputerVisionService : IComputerVisionService
@@ -161,5 +172,29 @@ public class ComputerVisionService : IComputerVisionService
         // Initialize Computer Vision client, etc.
     }
 
-    // Implement methods for IComputerVisionService
+    public async Task<string> AnalyzeReceiptAsync(string imageUrl)
+    {
+        var ocrResult = await _computerVisionClient.RecognizePrintedTextAsync(true, imageUrl);
+        
+        if (ocrResult == null || ocrResult.Regions == null)
+        {
+            return "No text detected.";
+        }
+
+        var extractedText = string.Empty;
+
+        foreach (var region in ocrResult.Regions)
+        {
+            foreach (var line in region.Lines)
+            {
+                foreach (var word in line.Words)
+                {
+                    extractedText += word.Text + " ";
+                }
+                extractedText += "\n";
+            }
+        }
+
+        return extractedText.Trim();
+    }
 }
