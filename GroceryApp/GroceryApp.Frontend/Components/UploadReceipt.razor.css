@@ -1,0 +1,46 @@
+.upload-receipt-container {
+    border: 2px dashed #ccc;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+}
+
+.upload-receipt-container h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.upload-receipt-container .preview {
+    margin-top: 15px;
+}
+
+.upload-receipt-container .preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.upload-button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-button:disabled {
+    background-color: #a5d6a7;
+    cursor: not-allowed;
+}
+
+.upload-message {
+    margin-top: 10px;
+    color: #ff5722;
+    font-weight: bold;
+}

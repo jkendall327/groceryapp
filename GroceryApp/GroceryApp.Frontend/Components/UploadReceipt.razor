@@ -1,0 +1,54 @@
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="upload-receipt-container">
+    <h3>Upload Receipt</h3>
+    <InputFile OnChange="HandleSelectedFiles" accept="image/*" />
+    @if (selectedFile != null)
+    {
+        <div class="preview">
+            <p>Selected File: @selectedFile.Name</p>
+            <img src="@imagePreview" alt="Receipt Preview" />
+        </div>
+    }
+    <button class="upload-button" @onclick="UploadFile" disabled="@(!isFileSelected)">Upload</button>
+    @if (uploadMessage != null)
+    {
+        <p class="upload-message">@uploadMessage</p>
+    }
+</div>
+
+@code {
+    private IBrowserFile selectedFile;
+    private string imagePreview;
+    private bool isFileSelected = false;
+    private string uploadMessage;
+
+    private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        if (selectedFile != null)
+        {
+            isFileSelected = true;
+            var buffer = new byte[selectedFile.Size];
+            await selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).ReadAsync(buffer);
+            imagePreview = $"data:image;base64,{Convert.ToBase64String(buffer)}";
+            uploadMessage = null;
+        }
+    }
+
+    private async Task UploadFile()
+    {
+        if (selectedFile != null)
+        {
+            // TODO: Implement the upload logic to the backend
+            // Example:
+            // using var content = new MultipartFormDataContent();
+            // content.Add(new StreamContent(selectedFile.OpenReadStream()), "file", selectedFile.Name);
+            // var response = await HttpClient.PostAsync("api/upload", content);
+            // uploadMessage = response.IsSuccessStatusCode ? "Upload successful!" : "Upload failed.";
+
+            // For now, we'll just display a success message.
+            uploadMessage = "Upload functionality is not yet implemented.";
+        }
+    }
+}
