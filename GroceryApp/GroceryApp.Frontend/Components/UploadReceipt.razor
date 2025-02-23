@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient Http
 
 <div class="upload-receipt-container">
     <h3>Upload Receipt</h3>
@@ -10,7 +11,7 @@
             <img src="@imagePreview" alt="Receipt Preview" />
         </div>
     }
-    <button class="upload-button" @onclick="UploadFile" disabled="@(!isFileSelected)">Upload</button>
+    <button class="upload-button" @onclick="UploadFile" disabled="@(!isFileSelected || isUploading)">Upload</button>
     @if (uploadMessage != null)
     {
         <p class="upload-message">@uploadMessage</p>
@@ -22,6 +23,7 @@
     private string imagePreview;
     private bool isFileSelected = false;
     private string uploadMessage;
+    private bool isUploading = false;
 
     private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
     {
@@ -40,15 +42,42 @@
     {
         if (selectedFile != null)
         {
-            // TODO: Implement the upload logic to the backend
-            // Example:
-            // using var content = new MultipartFormDataContent();
-            // content.Add(new StreamContent(selectedFile.OpenReadStream()), "file", selectedFile.Name);
-            // var response = await HttpClient.PostAsync("api/upload", content);
-            // uploadMessage = response.IsSuccessStatusCode ? "Upload successful!" : "Upload failed.";
+            try
+            {
+                isUploading = true;
+                uploadMessage = "Uploading...";
+                
+                using var content = new MultipartFormDataContent();
+                var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+                content.Add(new StreamContent(stream), "file", selectedFile.Name);
 
-            // For now, we'll just display a success message.
-            uploadMessage = "Upload functionality is not yet implemented.";
+                var response = await Http.PostAsync("api/upload", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<UploadResponse>();
+                    uploadMessage = "Upload successful!";
+                    // Optionally display the uploaded image URL
+                    // uploadMessage += $" Image URL: {result.Url}";
+                }
+                else
+                {
+                    uploadMessage = "Upload failed. Please try again.";
+                }
+            }
+            catch (Exception ex)
+            {
+                uploadMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                isUploading = false;
+            }
         }
+    }
+
+    public class UploadResponse
+    {
+        public string Url { get; set; }
     }
 }
