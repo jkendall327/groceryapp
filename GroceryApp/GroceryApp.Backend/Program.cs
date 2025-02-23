@@ -6,47 +6,15 @@ using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Rest;
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-// Configure Cosmos DB
-builder.Services.AddSingleton<CosmosClient>(sp =>
-{
-    var configuration = sp.GetRequiredService<IConfiguration>();
-    var cosmosConfig = configuration.GetSection("CosmosDb");
-    return new CosmosClient(cosmosConfig["Account"], cosmosConfig["Key"]);
-});
-
-builder.Services.AddSingleton<ICosmosService, CosmosService>();
-
-// Configure Azure Blob Storage
-builder.Services.AddSingleton<BlobServiceClient>(sp =>
-{
-    var configuration = sp.GetRequiredService<IConfiguration>();
-    var blobConfig = configuration.GetSection("AzureBlobStorage");
-    return new BlobServiceClient(blobConfig["ConnectionString"]);
-});
-
-builder.Services.AddSingleton<IBlobService, BlobService>();
-
-// Configure Azure Computer Vision
-builder.Services.AddSingleton<ComputerVisionClient>(sp =>
-{
-    var configuration = sp.GetRequiredService<IConfiguration>();
-    var visionConfig = configuration.GetSection("ComputerVision");
-    return new ComputerVisionClient(new ApiKeyServiceClientCredentials(visionConfig["SubscriptionKey"]))
-    {
-        Endpoint = visionConfig["Endpoint"]
-    };
-});
-
-builder.Services.AddSingleton<IComputerVisionService, ComputerVisionService>();
+builder.Services.AddCustomServices(builder.Configuration);
 
 var app = builder.Build();
 
