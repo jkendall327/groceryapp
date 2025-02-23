@@ -1,17 +1,27 @@
 .calendar-container {
     display: flex;
-    justify-content: space-around;
     flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
     margin-top: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
 }
 
 .calendar-day {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    width: 150px;
-    margin-bottom: 20px;
-    background-color: #fff;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    width: 180px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.calendar-day:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
 .past-day {
@@ -19,38 +29,56 @@
 }
 
 .calendar-day h4 {
-    margin-bottom: 5px;
-    color: #333;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 1.2em;
+    text-align: center;
 }
 
 .calendar-day p {
-    margin-bottom: 10px;
-    color: #555;
+    margin-bottom: 15px;
+    color: #555555;
+    text-align: center;
+    font-size: 0.95em;
 }
 
 .calendar-day ul {
     list-style-type: none;
     padding: 0;
+    max-height: 100px;
+    overflow-y: auto;
 }
 
 .calendar-day li {
-    margin-bottom: 5px;
     display: flex;
     align-items: center;
+    margin-bottom: 8px;
 }
 
 .calendar-day li input[type="checkbox"] {
-    margin-right: 5px;
+    margin-right: 10px;
+    transform: scale(1.2);
 }
 
-.bulk-edit-button {
+.bulk-edit-button,
+.export-button {
+    display: inline-block;
     margin-top: 20px;
-    padding: 10px 20px;
-    background-color: #ff9800;
-    color: white;
+    padding: 10px 25px;
+    font-size: 1em;
+    color: #ffffff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.bulk-edit-button {
+    background-color: #ff9800;
+}
+
+.bulk-edit-button:hover:not(:disabled) {
+    background-color: #e68900;
 }
 
 .bulk-edit-button:disabled {
@@ -59,14 +87,12 @@
 }
 
 .export-button {
-    margin-top: 20px;
-    padding: 10px 20px;
     background-color: #2196f3;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
     margin-left: 10px;
+}
+
+.export-button:hover:not(:disabled) {
+    background-color: #1976d2;
 }
 
 .export-button:disabled {
@@ -78,23 +104,29 @@
     margin-top: 15px;
     color: #e53935;
     font-weight: bold;
+    text-align: center;
 }
 
 .structured-data h4 {
     margin-bottom: 10px;
-    color: #333;
+    color: #2c3e50;
+    font-size: 1.1em;
 }
 
 .product-info p {
-    margin: 3px 0;
+    margin: 4px 0;
+    color: #555555;
+    font-size: 0.95em;
 }
 
 .low-confidence {
     margin-top: 15px;
-    padding: 10px;
+    padding: 12px;
     background-color: #ffe0b2;
     border: 1px solid #ff9800;
     border-radius: 5px;
     color: #e65100;
     font-weight: bold;
+    text-align: center;
+    font-size: 0.95em;
 }
