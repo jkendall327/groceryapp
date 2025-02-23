@@ -58,24 +58,22 @@ public class ReceiptService : IReceiptService
         var receiptData = await _llmService.ExtractProductInfoAsync(ocrText);
         logger.LogInformation("Extracted {ProductCount} products from receipt.", receiptData.Products.Count);
 
-        // Optionally, store the OCR and structured data in Cosmos DB
-        /*try
+        // Store the receipt data in Cosmos DB
+        try
         {
             var userId = "sample-user-id"; // Replace with actual user ID retrieval logic
-            foreach (var product in receiptData.Products)
-            {
-                product.UserId = userId;
-                await _cosmosService.AddProductAsync(product);
-            }
-            logger.LogInformation("Stored extracted products in Cosmos DB for UserID: {UserId}.", userId);
+            receiptData.UserId = userId;
+            receiptData.ReceiptId = Guid.NewGuid().ToString();
+            await _cosmosService.AddReceiptAsync(receiptData);
+            logger.LogInformation("Stored receipt data in Cosmos DB for UserID: {UserId}.", userId);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error storing products in Cosmos DB.");
-            return Results.StatusCode(StatusCodes.Status500InternalServerError);
-        }*/
+            logger.LogError(ex, "Error storing receipt data in Cosmos DB.");
+            return Results.StatusCode(StatusCodes.Status500InternalServerError, "Error storing receipt data.");
+        }
 
         logger.LogInformation("UploadReceipt endpoint completed successfully.");
-        return Results.Ok(new { Url = fileUrl, OCRText = ocrText, ReceiptData = receiptData });
+        return Results.Created($"/api/receipts/{receiptData.ReceiptId}", new { Url = fileUrl, OCRText = ocrText, ReceiptData = receiptData });
     }
 }
