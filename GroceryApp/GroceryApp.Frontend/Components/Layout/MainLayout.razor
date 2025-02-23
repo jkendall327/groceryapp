@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Logging
 @inherits LayoutComponentBase
 
 <nav>
@@ -39,23 +40,30 @@
     [Inject]
     private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
+    [Inject]
+    private ILogger<MainLayout> Logger { get; set; }
+
     private bool isAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
+        Logger.LogInformation("Initializing MainLayout component.");
         if (AuthenticationStateProvider != null)
         {
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             isAuthenticated = authState.User.Identity.IsAuthenticated;
+            Logger.LogInformation("User authentication status: {IsAuthenticated}", isAuthenticated);
         }
         else
         {
             isAuthenticated = false;
+            Logger.LogWarning("AuthenticationStateProvider is null. Setting isAuthenticated to false.");
         }
     }
 
     private void Logout()
     {
+        Logger.LogInformation("User initiated logout.");
         // Implement logout logic, e.g., redirect to logout endpoint or clear authentication tokens
         // This depends on how authentication is handled in your application
         NavigationManager.NavigateTo("authentication/logout");

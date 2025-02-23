@@ -2,7 +2,9 @@
 @using System.Globalization
 @using System.Text
 @using System.Text.Json
+@using Microsoft.Extensions.Logging
 @inject HttpClient Http
+@inject ILogger<ExpirationCalendar> Logger
 
 <h3>Expiration Calendar</h3>
 
@@ -48,6 +50,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Logger.LogInformation("Initializing ExpirationCalendar component.");
         var today = DateTime.Today;
         CurrentWeek = Enumerable.Range(0, 7)
             .Select(offset => new DayInfo
@@ -56,17 +59,21 @@
                 DayOfWeek = today.AddDays(offset).ToString("dddd", CultureInfo.InvariantCulture)
             })
             .ToList();
+        
+        Logger.LogInformation("Current week set from {StartDate} to {EndDate}.", CurrentWeek.First().Date, CurrentWeek.Last().Date);
 
         await LoadExpiringItems();
     }
 
     private async Task LoadExpiringItems()
     {
+        Logger.LogInformation("Loading expiring items from API.");
         try
         {
             var items = await Http.GetFromJsonAsync<List<ProductInfo>>("api/receipts/expiring");
             if (items != null)
             {
+                Logger.LogInformation("Received {Count} expiring items from API.", items.Count);
                 foreach (var item in items)
                 {
                     if (!ExpiringItems.ContainsKey(item.ExpirationDate.Date))
@@ -76,15 +83,21 @@
                     ExpiringItems[item.ExpirationDate.Date].Add(item);
                 }
             }
+            else
+            {
+                Logger.LogWarning("No expiring items were returned from the API.");
+            }
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Error loading expiring items.");
             feedbackMessage = $"Error loading expiring items: {ex.Message}";
         }
     }
 
     private async Task MarkSelectedAsUsed()
     {
+        Logger.LogInformation("Marking selected items as used.");
         var selectedIds = ExpiringItems
             .Where(kvp => kvp.Key >= DateTime.Today)
             .SelectMany(kvp => kvp.Value)
@@ -94,6 +107,7 @@
 
         if (selectedIds.Count == 0)
         {
+            Logger.LogInformation("No items selected to mark as used.");
             feedbackMessage = "No items selected.";
             return;
         }
@@ -103,6 +117,7 @@
             var response = await Http.PostAsJsonAsync("api/receipts/mark-used", selectedIds);
             if (response.IsSuccessStatusCode)
             {
+                Logger.LogInformation("Successfully marked {Count} items as used.", selectedIds.Count);
                 foreach (var day in CurrentWeek)
                 {
                     if (ExpiringItems.ContainsKey(day.Date))
@@ -121,17 +136,20 @@
             }
             else
             {
+                Logger.LogWarning("Failed to mark items as used. Status Code: {StatusCode}", response.StatusCode);
                 feedbackMessage = "Failed to mark items as used. Please try again.";
             }
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Error marking items as used.");
             feedbackMessage = $"Error marking items as used: {ex.Message}";
         }
     }
 
     private async Task ExportToJson()
     {
+        Logger.LogInformation("Exporting shopping history to JSON.");
         try
         {
             var response = await Http.GetFromJsonAsync<List<PurchasedItem>>("api/shoppinghistory");
@@ -139,21 +157,25 @@
             {
                 var json = JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
                 await JSRuntime.InvokeVoidAsync("downloadFile", "shopping_history.json", "application/json", json);
+                Logger.LogInformation("Successfully exported shopping history as JSON.");
                 feedbackMessage = "Shopping history exported as JSON.";
             }
             else
             {
+                Logger.LogWarning("No shopping history data available to export as JSON.");
                 feedbackMessage = "No data available to export.";
             }
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Error exporting shopping history to JSON.");
             feedbackMessage = $"Error exporting to JSON: {ex.Message}";
         }
     }
 
     private async Task ExportToCsv()
     {
+        Logger.LogInformation("Exporting shopping history to CSV.");
         try
         {
             var response = await Http.GetFromJsonAsync<List<PurchasedItem>>("api/shoppinghistory");
@@ -170,15 +192,18 @@
 
                 var csv = csvBuilder.ToString();
                 await JSRuntime.InvokeVoidAsync("downloadFile", "shopping_history.csv", "text/csv", csv);
+                Logger.LogInformation("Successfully exported shopping history as CSV.");
                 feedbackMessage = "Shopping history exported as CSV.";
             }
             else
             {
+                Logger.LogWarning("No shopping history data available to export as CSV.");
                 feedbackMessage = "No data available to export.";
             }
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Error exporting shopping history to CSV.");
             feedbackMessage = $"Error exporting to CSV: {ex.Message}";
         }
     }
