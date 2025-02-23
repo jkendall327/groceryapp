@@ -1,0 +1,53 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore ./GroceryApp/GroceryApp.Backend/GroceryApp.Backend.csproj
+
+      - name: Build
+        run: dotnet build --no-restore ./GroceryApp/GroceryApp.Backend/GroceryApp.Backend.csproj --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal ./GroceryApp/GroceryApp.Backend/GroceryApp.Backend.csproj
+
+      - name: Publish
+        run: dotnet publish --no-build ./GroceryApp/GroceryApp.Backend/GroceryApp.Backend.csproj --configuration Release --output ./publish
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Infrastructure
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az deployment group create --resource-group YOUR_RESOURCE_GROUP_NAME --template-file infra/main.bicep --parameters location=YOUR_AZURE_REGION
