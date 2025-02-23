@@ -3,8 +3,8 @@
     padding: 20px;
     border-radius: 10px;
     text-align: center;
-    max-width: 400px;
-    margin: 0 auto;
+    max-width: 600px;
+    margin: 20px auto;
     background-color: #f9f9f9;
 }
 
@@ -42,5 +42,28 @@
 .upload-message {
     margin-top: 10px;
     color: #ff5722;
+    font-weight: bold;
+}
+
+.structured-data {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.product-info {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: #fff;
+}
+
+.low-confidence {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #ffe0b2;
+    border: 1px solid #ff9800;
+    border-radius: 5px;
+    color: #e65100;
     font-weight: bold;
 }

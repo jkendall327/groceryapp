@@ -16,7 +16,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // New API Endpoint for Uploading Receipt Images
-app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService, IComputerVisionService computerVisionService) =>
+app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService, IComputerVisionService computerVisionService, ILlmService llmService) =>
 {
     if (file == null || file.Length == 0)
     {
@@ -30,11 +30,14 @@ app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService, ICom
     // Call Azure Computer Vision to perform OCR
     var ocrText = await computerVisionService.AnalyzeReceiptAsync(fileUrl);
 
-    // Optionally, you can store the OCR result in Cosmos DB here using ICosmosService
-    // var cosmosService = app.Services.GetRequiredService<ICosmosService>();
-    // await cosmosService.StoreOcrResultAsync(new OcrResult { FileUrl = fileUrl, Text = ocrText });
+    // Call LLM service to extract structured data
+    var receiptData = await llmService.ExtractProductInfoAsync(ocrText);
 
-    return Results.Ok(new { Url = fileUrl, OCRText = ocrText });
+    // Optionally, you can store the OCR and structured data in Cosmos DB here using ICosmosService
+    // var cosmosService = app.Services.GetRequiredService<ICosmosService>();
+    // await cosmosService.StoreReceiptDataAsync(new ReceiptData { ... });
+
+    return Results.Ok(new { Url = fileUrl, OCRText = ocrText, ReceiptData = receiptData });
 })
 .WithName("UploadReceipt")
 .Accepts<IFormFile>("multipart/form-data")

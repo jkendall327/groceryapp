@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Forms
 @inject HttpClient Http
 
 <div class="upload-receipt-container">
@@ -15,6 +16,31 @@
     {
         <p class="upload-message">@uploadMessage</p>
     }
+    @if (receiptData != null)
+    {
+        <div class="structured-data">
+            <h4>Extracted Product Information:</h4>
+            @foreach (var product in receiptData.Products)
+            {
+                <div class="product-info">
+                    <p><strong>Product Name:</strong> @product.ProductName</p>
+                    <p><strong>Nutritional Info:</strong> @product.NutritionalInfo</p>
+                    <p><strong>Shelf Life:</strong> @product.ShelfLife</p>
+                    <p><strong>Food Category:</strong> @product.FoodCategory</p>
+                    <p><strong>Unit:</strong> @product.Unit</p>
+                    <p><strong>Quantity:</strong> @product.Quantity</p>
+                    <p><strong>Confidence:</strong> @product.Confidence</p>
+                </div>
+            }
+
+            @if (receiptData.LowConfidence)
+            {
+                <div class="low-confidence">
+                    <p>Some information might be uncertain. Please review the extracted data.</p>
+                </div>
+            }
+        </div>
+    }
 </div>
 
 @code {
@@ -23,6 +49,7 @@
     private bool isFileSelected = false;
     private string uploadMessage;
     private bool isUploading = false;
+    private ReceiptData receiptData;
 
     private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
     {
@@ -34,6 +61,7 @@
             await selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).ReadAsync(buffer);
             imagePreview = $"data:image;base64,{Convert.ToBase64String(buffer)}";
             uploadMessage = null;
+            receiptData = null;
         }
     }
 
@@ -56,8 +84,7 @@
                 {
                     var result = await response.Content.ReadFromJsonAsync<UploadResponse>();
                     uploadMessage = "Upload successful!";
-                    // Optionally display the uploaded image URL
-                    // uploadMessage += $" Image URL: {result.Url}";
+                    receiptData = result.ReceiptData;
                 }
                 else
                 {
@@ -78,5 +105,24 @@
     public class UploadResponse
     {
         public string Url { get; set; }
+        public string OCRText { get; set; }
+        public ReceiptData ReceiptData { get; set; }
+    }
+
+    public class ReceiptData
+    {
+        public List<ProductInfo> Products { get; set; }
+        public bool LowConfidence { get; set; }
+    }
+
+    public class ProductInfo
+    {
+        public string ProductName { get; set; }
+        public string NutritionalInfo { get; set; }
+        public string ShelfLife { get; set; }
+        public string FoodCategory { get; set; }
+        public string Unit { get; set; }
+        public string Quantity { get; set; }
+        public double Confidence { get; set; }
     }
 }

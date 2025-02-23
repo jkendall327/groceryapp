@@ -1,6 +1,9 @@
 using Azure.Storage.Blobs;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Rest;
 
 namespace GroceryApp.Backend
 {
@@ -45,6 +48,12 @@ namespace GroceryApp.Backend
             return services;
         }
 
+        public static IServiceCollection AddLlmServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddHttpClient<ILlmService, LlmService>();
+            return services;
+        }
+
         public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOpenApi();
@@ -52,6 +61,7 @@ namespace GroceryApp.Backend
             services.AddCosmosServices(configuration);
             services.AddBlobServices(configuration);
             services.AddComputerVisionServices(configuration);
+            services.AddLlmServices(configuration);
 
             return services;
         }
