@@ -36,15 +36,22 @@
 </div>
 
 @code {
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    [Inject]
+    private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
     private bool isAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await authenticationStateTask;
-        isAuthenticated = authState.User.Identity.IsAuthenticated;
+        if (AuthenticationStateProvider != null)
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            isAuthenticated = authState.User.Identity.IsAuthenticated;
+        }
+        else
+        {
+            isAuthenticated = false;
+        }
     }
 
     private void Logout()
