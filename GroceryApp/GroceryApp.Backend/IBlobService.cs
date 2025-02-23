@@ -2,6 +2,6 @@ namespace GroceryApp.Backend
 {
     public interface IBlobService
     {
-        // Define methods for interacting with Azure Blob Storage
+        Task<string> UploadReceiptAsync(Stream fileStream, string fileName);
     }
 }

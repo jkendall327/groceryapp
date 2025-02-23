@@ -3,6 +3,7 @@ using GroceryApp.Backend;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Rest;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,6 +72,24 @@ app.MapGet("/weatherforecast",
         })
     .WithName("GetWeatherForecast");
 
+// New API Endpoint for Uploading Receipt Images
+app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService) =>
+{
+    if (file == null || file.Length == 0)
+    {
+        return Results.BadRequest("No file uploaded.");
+    }
+
+    var fileName = Path.GetFileName(file.FileName);
+    using var stream = file.OpenReadStream();
+    var fileUrl = await blobService.UploadReceiptAsync(stream, fileName);
+    return Results.Ok(new { Url = fileUrl });
+})
+.WithName("UploadReceipt")
+.Accepts<IFormFile>("multipart/form-data")
+.Produces(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status400BadRequest);
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
@@ -98,20 +117,33 @@ public class CosmosService : ICosmosService
 
 public interface IBlobService
 {
-    // Define methods for interacting with Azure Blob Storage
+    Task<string> UploadReceiptAsync(Stream fileStream, string fileName);
 }
 
 public class BlobService : IBlobService
 {
     private readonly BlobServiceClient _blobServiceClient;
+    private readonly string _containerName = "receipts";
 
     public BlobService(BlobServiceClient blobServiceClient)
     {
         _blobServiceClient = blobServiceClient;
-        // Initialize Blob containers, etc.
+        InitializeContainer();
     }
 
-    // Implement methods for IBlobService
+    private void InitializeContainer()
+    {
+        var container = _blobServiceClient.GetBlobContainerClient(_containerName);
+        container.CreateIfNotExists();
+    }
+
+    public async Task<string> UploadReceiptAsync(Stream fileStream, string fileName)
+    {
+        var container = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var blobClient = container.GetBlobClient(fileName);
+        await blobClient.UploadAsync(fileStream, overwrite: true);
+        return blobClient.Uri.ToString();
+    }
 }
 
 public interface IComputerVisionService

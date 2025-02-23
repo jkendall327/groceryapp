@@ -1,17 +1,32 @@
 using Azure.Storage.Blobs;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace GroceryApp.Backend
 {
     public class BlobService : IBlobService
     {
         private readonly BlobServiceClient _blobServiceClient;
+        private readonly string _containerName = "receipts";
 
         public BlobService(BlobServiceClient blobServiceClient)
         {
             _blobServiceClient = blobServiceClient;
-            // Initialize Blob containers, etc.
+            InitializeContainer();
         }
 
-        // Implement methods for IBlobService
+        private void InitializeContainer()
+        {
+            var container = _blobServiceClient.GetBlobContainerClient(_containerName);
+            container.CreateIfNotExists();
+        }
+
+        public async Task<string> UploadReceiptAsync(Stream fileStream, string fileName)
+        {
+            var container = _blobServiceClient.GetBlobContainerClient(_containerName);
+            var blobClient = container.GetBlobClient(fileName);
+            await blobClient.UploadAsync(fileStream, overwrite: true);
+            return blobClient.Uri.ToString();
+        }
     }
 }
