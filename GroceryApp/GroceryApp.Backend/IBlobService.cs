@@ -1,7 +1,6 @@
-namespace GroceryApp.Backend
+namespace GroceryApp.Backend;
+
+public interface IBlobService
 {
-    public interface IBlobService
-    {
-        Task<string> UploadReceiptAsync(Stream fileStream, string fileName);
-    }
+    Task<string> UploadReceiptAsync(Stream fileStream, string fileName);
 }

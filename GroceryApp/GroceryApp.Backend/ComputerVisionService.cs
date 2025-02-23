@@ -1,42 +1,35 @@
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using System.Threading.Tasks;
 
-namespace GroceryApp.Backend
+namespace GroceryApp.Backend;
+
+public class ComputerVisionService(ComputerVisionClient computerVisionClient) : IComputerVisionService
 {
-    public class ComputerVisionService : IComputerVisionService
+    // Initialize Computer Vision client, etc.
+
+    public async Task<string> AnalyzeReceiptAsync(string imageUrl)
     {
-        private readonly ComputerVisionClient _computerVisionClient;
-
-        public ComputerVisionService(ComputerVisionClient computerVisionClient)
-        {
-            _computerVisionClient = computerVisionClient;
-            // Initialize Computer Vision client, etc.
-        }
-
-        public async Task<string> AnalyzeReceiptAsync(string imageUrl)
-        {
-            var ocrResult = await _computerVisionClient.RecognizePrintedTextAsync(true, imageUrl);
+        var ocrResult = await computerVisionClient.RecognizePrintedTextAsync(true, imageUrl);
             
-            if (ocrResult == null || ocrResult.Regions == null)
-            {
-                return "No text detected.";
-            }
-
-            var extractedText = string.Empty;
-
-            foreach (var region in ocrResult.Regions)
-            {
-                foreach (var line in region.Lines)
-                {
-                    foreach (var word in line.Words)
-                    {
-                        extractedText += word.Text + " ";
-                    }
-                    extractedText += "\n";
-                }
-            }
-
-            return extractedText.Trim();
+        if (ocrResult == null || ocrResult.Regions == null)
+        {
+            return "No text detected.";
         }
+
+        var extractedText = string.Empty;
+
+        foreach (var region in ocrResult.Regions)
+        {
+            foreach (var line in region.Lines)
+            {
+                foreach (var word in line.Words)
+                {
+                    extractedText += word.Text + " ";
+                }
+                extractedText += "\n";
+            }
+        }
+
+        return extractedText.Trim();
     }
 }
