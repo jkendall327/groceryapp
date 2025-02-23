@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace GroceryApp.Backend;
@@ -14,6 +15,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<CosmosClient>(sp =>
         {
             var cosmosConfig = configuration.GetSection("CosmosDb");
+            var logger = sp.GetRequiredService<ILogger<CosmosClient>>();
+            logger.LogInformation("Configuring CosmosClient.");
             return new CosmosClient(cosmosConfig["Account"], cosmosConfig["Key"]);
         });
 
@@ -26,6 +29,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<BlobServiceClient>(sp =>
         {
             var blobConfig = configuration.GetSection("AzureBlobStorage");
+            var logger = sp.GetRequiredService<ILogger<BlobServiceClient>>();
+            logger.LogInformation("Configuring BlobServiceClient.");
             return new BlobServiceClient(blobConfig["ConnectionString"]);
         });
 
@@ -38,6 +43,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ComputerVisionClient>(sp =>
         {
             var visionConfig = configuration.GetSection("ComputerVision");
+            var logger = sp.GetRequiredService<ILogger<ComputerVisionClient>>();
+            logger.LogInformation("Configuring ComputerVisionClient.");
             return new ComputerVisionClient(new ApiKeyServiceClientCredentials(visionConfig["SubscriptionKey"]))
             {
                 Endpoint = visionConfig["Endpoint"]
@@ -51,6 +58,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddLlmServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHttpClient<ILlmService, LlmService>();
+        services.AddSingleton<ILogger<LlmService>, Logger<LlmService>>();
         return services;
     }
 
@@ -80,6 +88,7 @@ public static class ServiceCollectionExtensions
                 };
             });
 
+        services.AddSingleton<ILogger<JwtBearerEvents>, Logger<JwtBearerEvents>>();
         return services;
     }
 
