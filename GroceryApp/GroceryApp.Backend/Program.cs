@@ -1,12 +1,4 @@
-using Azure.Storage.Blobs;
 using GroceryApp.Backend;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Rest;
-using System.IO;
-using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +24,7 @@ app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService, ICom
     }
 
     var fileName = Path.GetFileName(file.FileName);
-    using var stream = file.OpenReadStream();
+    await using var stream = file.OpenReadStream();
     var fileUrl = await blobService.UploadReceiptAsync(stream, fileName);
 
     // Call Azure Computer Vision to perform OCR
