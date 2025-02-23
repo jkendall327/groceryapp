@@ -15,7 +15,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// New API Endpoint for Uploading Receipt Images
+// Existing ReceiptsController endpoints
 app.MapPost("/api/upload", async (IFormFile file, IBlobService blobService, IComputerVisionService computerVisionService, ILlmService llmService) =>
 {
     if (file == null || file.Length == 0)

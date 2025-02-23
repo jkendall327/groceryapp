@@ -9,12 +9,21 @@ using System.Collections.Generic;
 
 namespace GroceryApp.Backend;
 
-public class LlmService(HttpClient httpClient, IConfiguration configuration) : ILlmService
+public class LlmService : ILlmService
 {
+    private readonly HttpClient _httpClient;
+    private readonly IConfiguration _configuration;
+
+    public LlmService(HttpClient httpClient, IConfiguration configuration)
+    {
+        _httpClient = httpClient;
+        _configuration = configuration;
+    }
+
     public async Task<ReceiptData> ExtractProductInfoAsync(string ocrText)
     {
-        var apiKey = configuration["OpenAI:ApiKey"];
-        var apiUrl = configuration["OpenAI:ApiUrl"]; // e.g., "https://api.openai.com/v1/completions"
+        var apiKey = _configuration["OpenAI:ApiKey"];
+        var apiUrl = _configuration["OpenAI:ApiUrl"]; // e.g., "https://api.openai.com/v1/completions"
 
         var prompt = GeneratePrompt(ocrText);
 
@@ -27,9 +36,9 @@ public class LlmService(HttpClient httpClient, IConfiguration configuration) : I
         };
 
         var content = new StringContent(JsonSerializer.Serialize(requestData), Encoding.UTF8, "application/json");
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
-        var response = await httpClient.PostAsync(apiUrl, content);
+        var response = await _httpClient.PostAsync(apiUrl, content);
 
         if (!response.IsSuccessStatusCode)
         {

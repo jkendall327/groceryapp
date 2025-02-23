@@ -57,5 +57,27 @@ public class CosmosService : ICosmosService
         }
     }
 
+    public async Task<List<PurchasedItem>> GetAllPurchasesAsync()
+    {
+        var query = new QueryDefinition(
+                "SELECT c.id, c.productName, c.nutritionalInfo, c.shelfLife, c.foodCategory, c.unit, c.quantity, c.confidence, c.expirationDate, c.isUsed " +
+                "FROM c"
+            );
+
+        var iterator = _container.GetItemQueryIterator<PurchasedItem>(query);
+        var results = new List<PurchasedItem>();
+
+        while (iterator.HasMoreResults)
+        {
+            var response = await iterator.ReadNextAsync();
+            results.AddRange(response.ToList());
+        }
+
+        // Grouping by User can be implemented here if user information is available.
+        // For now, assuming a single user.
+
+        return results;
+    }
+
     // Implement other methods for ICosmosService as needed
 }

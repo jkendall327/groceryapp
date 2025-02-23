@@ -2,7 +2,7 @@ using System;
 
 namespace GroceryApp.Backend.Models;
 
-public class ProductInfo
+public class PurchasedItem
 {
     public string Id { get; set; }
     public string ProductName { get; set; }
@@ -13,6 +13,5 @@ public class ProductInfo
     public string Quantity { get; set; }
     public double Confidence { get; set; }
     public DateTime ExpirationDate { get; set; }
-    public bool IsUsed { get; set; } = false;
-    public bool IsSelected { get; set; } = false;
+    public bool IsUsed { get; set; }
 }

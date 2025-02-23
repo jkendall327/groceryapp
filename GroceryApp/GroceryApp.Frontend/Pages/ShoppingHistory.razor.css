@@ -1,0 +1,40 @@
+.shopping-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.shopping-history-table th, .shopping-history-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.shopping-history-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
+
+.user-group {
+    background-color: #e0e0e0;
+    font-weight: bold;
+}
+
+.export-button {
+    margin-right: 10px;
+    padding: 10px 20px;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.export-button:disabled {
+    background-color: #90caf9;
+    cursor: not-allowed;
+}
+
+.error {
+    color: #e53935;
+    font-weight: bold;
+}

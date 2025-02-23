@@ -58,6 +58,22 @@
     cursor: not-allowed;
 }
 
+.export-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.export-button:disabled {
+    background-color: #90caf9;
+    cursor: not-allowed;
+}
+
 .feedback {
     margin-top: 15px;
     color: #e53935;
