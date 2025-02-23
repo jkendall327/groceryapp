@@ -12,6 +12,7 @@
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.30.0" />
         <PackageReference Include="Azure.Storage.Blobs" Version="12.17.0" />
         <PackageReference Include="Microsoft.Azure.CognitiveServices.Vision.ComputerVision" Version="4.0.2" />
+        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     </ItemGroup>
 
 </Project>
