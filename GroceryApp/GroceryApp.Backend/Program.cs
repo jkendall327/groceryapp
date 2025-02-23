@@ -1,3 +1,6 @@
+using Azure.Storage.Blobs;
+using Microsoft.Azure.Cosmos;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
