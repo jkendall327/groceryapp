@@ -5,7 +5,7 @@ namespace GroceryApp.Backend.Models
     public class PurchasedItem
     {
         public string Id { get; set; }
-        public string UserId { get; set; } // Added to associate purchase with a user
+        public string UserId { get; set; } // Associates the purchase with a specific user
         public string ProductName { get; set; }
         public string NutritionalInfo { get; set; }
         public string ShelfLife { get; set; }

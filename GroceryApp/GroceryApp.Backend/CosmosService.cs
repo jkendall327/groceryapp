@@ -5,79 +5,84 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GroceryApp.Backend;
-
-public class CosmosService : ICosmosService
+namespace GroceryApp.Backend
 {
-    private readonly CosmosClient _cosmosClient;
-    private readonly Container _container;
-
-    public CosmosService(CosmosClient cosmosClient)
+    public class CosmosService : ICosmosService
     {
-        _cosmosClient = cosmosClient;
-        _container = _cosmosClient.GetContainer("GroceryAppDatabase", "ItemsContainer");
-    }
+        private readonly CosmosClient _cosmosClient;
+        private readonly Container _container;
 
-    public async Task<List<ProductInfo>> GetExpiringProductsAsync(DateTime currentDate, DateTime endDate)
-    {
-        var query = new QueryDefinition(
-                "SELECT c.id, c.productName, c.nutritionalInfo, c.shelfLife, c.foodCategory, c.unit, c.quantity, c.confidence, c.expirationDate, c.isUsed " +
-                "FROM c WHERE c.expirationDate >= @currentDate AND c.expirationDate <= @endDate AND c.isUsed = false"
-            )
-            .WithParameter("@currentDate", currentDate)
-            .WithParameter("@endDate", endDate);
-
-        var iterator = _container.GetItemQueryIterator<ProductInfo>(query);
-        var results = new List<ProductInfo>();
-
-        while (iterator.HasMoreResults)
+        public CosmosService(CosmosClient cosmosClient)
         {
-            var response = await iterator.ReadNextAsync();
-            results.AddRange(response.ToList());
+            _cosmosClient = cosmosClient;
+            _container = _cosmosClient.GetContainer("GroceryAppDatabase", "ItemsContainer");
         }
 
-        return results.OrderByDescending(p => p.ExpirationDate).ToList();
-    }
-
-    public async Task MarkProductsAsUsedAsync(List<string> productIds)
-    {
-        foreach (var id in productIds)
+        public async Task<List<ProductInfo>> GetExpiringProductsAsync(string userId, DateTime currentDate, DateTime endDate)
         {
-            try
+            var query = new QueryDefinition(
+                    "SELECT c.id, c.productName, c.nutritionalInfo, c.shelfLife, c.foodCategory, c.unit, c.quantity, c.confidence, c.expirationDate, c.isUsed " +
+                    "FROM c WHERE c.UserId = @userId AND c.expirationDate >= @currentDate AND c.expirationDate <= @endDate AND c.isUsed = false"
+                )
+                .WithParameter("@userId", userId)
+                .WithParameter("@currentDate", currentDate)
+                .WithParameter("@endDate", endDate);
+
+            var iterator = _container.GetItemQueryIterator<ProductInfo>(query);
+            var results = new List<ProductInfo>();
+
+            while (iterator.HasMoreResults)
             {
-                var response = await _container.ReadItemAsync<ProductInfo>(id, new PartitionKey(id));
-                var product = response.Resource;
-                product.IsUsed = true;
-                await _container.UpsertItemAsync(product, new PartitionKey(product.Id));
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.ToList());
             }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                // Handle not found if necessary
-            }
+
+            return results.OrderByDescending(p => p.ExpirationDate).ToList();
         }
-    }
 
-    public async Task<List<PurchasedItem>> GetAllPurchasesAsync()
-    {
-        var query = new QueryDefinition(
-                "SELECT c.id, c.productName, c.nutritionalInfo, c.shelfLife, c.foodCategory, c.unit, c.quantity, c.confidence, c.expirationDate, c.isUsed " +
-                "FROM c"
-            );
-
-        var iterator = _container.GetItemQueryIterator<PurchasedItem>(query);
-        var results = new List<PurchasedItem>();
-
-        while (iterator.HasMoreResults)
+        public async Task MarkProductsAsUsedAsync(string userId, List<string> productIds)
         {
-            var response = await iterator.ReadNextAsync();
-            results.AddRange(response.ToList());
+            foreach (var id in productIds)
+            {
+                try
+                {
+                    var response = await _container.ReadItemAsync<ProductInfo>(id, new PartitionKey(id));
+                    var product = response.Resource;
+
+                    if (product.UserId != userId)
+                    {
+                        // Optionally, handle unauthorized access attempts
+                        continue;
+                    }
+
+                    product.IsUsed = true;
+                    await _container.UpsertItemAsync(product, new PartitionKey(product.Id));
+                }
+                catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    // Handle not found if necessary
+                }
+            }
         }
 
-        // Grouping by User can be implemented here if user information is available.
-        // For now, assuming a single user.
+        public async Task<List<PurchasedItem>> GetAllPurchasesAsync(string userId)
+        {
+            var query = new QueryDefinition(
+                    "SELECT c.id, c.productName, c.nutritionalInfo, c.shelfLife, c.foodCategory, c.unit, c.quantity, c.confidence, c.expirationDate, c.isUsed " +
+                    "FROM c WHERE c.UserId = @userId"
+                )
+                .WithParameter("@userId", userId);
 
-        return results;
+            var iterator = _container.GetItemQueryIterator<PurchasedItem>(query);
+            var results = new List<PurchasedItem>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.ToList());
+            }
+
+            return results;
+        }
     }
-
-    // Implement other methods for ICosmosService as needed
 }

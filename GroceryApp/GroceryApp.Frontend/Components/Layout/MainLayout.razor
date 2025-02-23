@@ -1,12 +1,5 @@
+@using Microsoft.AspNetCore.Components.Authorization
 @inherits LayoutComponentBase
-
-<div class="main-layout">
-    <NavMenu />
-    <div class="content px-4">
-        @Body
-        <ExpirationCalendar />
-    </div>
-</div>
 
 <nav>
     <ul class="nav">
@@ -19,5 +12,48 @@
         <li class="nav-item">
             <NavLink class="nav-link" href="/shopping-history">Shopping History</NavLink>
         </li>
+        @if (isAuthenticated)
+        {
+            <li class="nav-item">
+                <a class="nav-link" href="#" @onclick="Logout">Logout</a>
+            </li>
+        }
+        else
+        {
+            <li class="nav-item">
+                <a class="nav-link" href="/authentication/login">Login</a>
+            </li>
+        }
     </ul>
 </nav>
+
+<div class="main-layout">
+    <NavMenu />
+    <div class="content px-4">
+        @Body
+        <ExpirationCalendar />
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateTask;
+        isAuthenticated = authState.User.Identity.IsAuthenticated;
+    }
+
+    private void Logout()
+    {
+        // Implement logout logic, e.g., redirect to logout endpoint or clear authentication tokens
+        // This depends on how authentication is handled in your application
+        NavigationManager.NavigateTo("authentication/logout");
+    }
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+}

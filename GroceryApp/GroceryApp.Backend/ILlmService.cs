@@ -1,9 +1,10 @@
 using GroceryApp.Backend.Models;
 using System.Threading.Tasks;
 
-namespace GroceryApp.Backend;
-
-public interface ILlmService
+namespace GroceryApp.Backend
 {
-    Task<ReceiptData> ExtractProductInfoAsync(string ocrText);
+    public interface ILlmService
+    {
+        Task<ReceiptData> ExtractProductInfoAsync(string ocrText);
+    }
 }
