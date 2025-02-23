@@ -1,0 +1,149 @@
+@using System.Globalization
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<h3>Expiration Calendar</h3>
+
+<div class="calendar-container">
+    @foreach (var day in CurrentWeek)
+    {
+        <div class="calendar-day @(day.Date < DateTime.Today ? "past-day" : "")">
+            <h4>@day.DayOfWeek</h4>
+            <p>@day.Date.ToString("MMMM dd, yyyy")</p>
+            @if (ExpiringItems.ContainsKey(day.Date))
+            {
+                <ul>
+                    @foreach (var item in ExpiringItems[day.Date].Where(i => !i.IsUsed))
+                    {
+                        <li>
+                            <input type="checkbox" @bind="item.IsSelected" /> @item.ProductName (@item.Quantity @item.Unit)
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No items expiring on this day.</p>
+            }
+        </div>
+    }
+</div>
+
+<button class="bulk-edit-button" @onclick="MarkSelectedAsUsed" disabled="@(!HasSelectedItems)">Mark Selected as Used</button>
+
+@if (feedbackMessage != null)
+{
+    <p class="feedback">@feedbackMessage</p>
+}
+
+@code {
+    private List<DayInfo> CurrentWeek { get; set; } = new();
+    private Dictionary<DateTime, List<ProductInfo>> ExpiringItems { get; set; } = new();
+    private string feedbackMessage;
+    private bool HasSelectedItems => ExpiringItems.Any(kvp => kvp.Value.Any(item => item.IsSelected && !item.IsUsed));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var today = DateTime.Today;
+        CurrentWeek = Enumerable.Range(0, 7)
+            .Select(offset => new DayInfo
+            {
+                Date = today.AddDays(offset),
+                DayOfWeek = today.AddDays(offset).ToString("dddd", CultureInfo.InvariantCulture)
+            })
+            .ToList();
+
+        await LoadExpiringItems();
+    }
+
+    private async Task LoadExpiringItems()
+    {
+        try
+        {
+            var items = await Http.GetFromJsonAsync<List<ProductInfo>>("api/receipts/expiring");
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    if (!ExpiringItems.ContainsKey(item.ExpirationDate.Date))
+                    {
+                        ExpiringItems[item.ExpirationDate.Date] = new List<ProductInfo>();
+                    }
+                    ExpiringItems[item.ExpirationDate.Date].Add(item);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            feedbackMessage = $"Error loading expiring items: {ex.Message}";
+        }
+    }
+
+    private async Task MarkSelectedAsUsed()
+    {
+        var selectedIds = ExpiringItems
+            .Where(kvp => kvp.Key >= DateTime.Today)
+            .SelectMany(kvp => kvp.Value)
+            .Where(item => item.IsSelected && !item.IsUsed)
+            .Select(item => item.Id)
+            .ToList();
+
+        if (selectedIds.Count == 0)
+        {
+            feedbackMessage = "No items selected.";
+            return;
+        }
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/receipts/mark-used", selectedIds);
+            if (response.IsSuccessStatusCode)
+            {
+                foreach (var day in CurrentWeek)
+                {
+                    if (ExpiringItems.ContainsKey(day.Date))
+                    {
+                        foreach (var item in ExpiringItems[day.Date])
+                        {
+                            if (selectedIds.Contains(item.Id))
+                            {
+                                item.IsUsed = true;
+                                item.IsSelected = false;
+                            }
+                        }
+                    }
+                }
+                feedbackMessage = "Selected items have been marked as used.";
+            }
+            else
+            {
+                feedbackMessage = "Failed to mark items as used. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            feedbackMessage = $"Error marking items as used: {ex.Message}";
+        }
+    }
+
+    public class DayInfo
+    {
+        public string DayOfWeek { get; set; }
+        public DateTime Date { get; set; }
+    }
+
+    public class ProductInfo
+    {
+        public string Id { get; set; }
+        public string ProductName { get; set; }
+        public string NutritionalInfo { get; set; }
+        public string ShelfLife { get; set; }
+        public string FoodCategory { get; set; }
+        public string Unit { get; set; }
+        public string Quantity { get; set; }
+        public double Confidence { get; set; }
+        public DateTime ExpirationDate { get; set; }
+        public bool IsUsed { get; set; }
+        public bool IsSelected { get; set; }
+    }
+}

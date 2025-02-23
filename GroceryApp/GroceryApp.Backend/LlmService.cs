@@ -1,10 +1,10 @@
+using GroceryApp.Backend.Models;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using GroceryApp.Backend.Models;
 using System.Collections.Generic;
 
 namespace GroceryApp.Backend
@@ -92,7 +92,7 @@ namespace GroceryApp.Backend
 
         private string GeneratePrompt(string ocrText)
         {
-            return $"Extract structured product information from the following receipt text. Return the data in JSON format with fields: ProductName, NutritionalInfo, ShelfLife, FoodCategory, Unit, Quantity, Confidence (0 to 1).\n\nReceipt Text:\n{ocrText}";
+            return $"Extract structured product information from the following receipt text. Return the data in JSON format with fields: ProductName, NutritionalInfo, ShelfLife, FoodCategory, Unit, Quantity, Confidence (0 to 1), ExpirationDate.\n\nReceipt Text:\n{ocrText}";
         }
 
         private class OpenAIResponse

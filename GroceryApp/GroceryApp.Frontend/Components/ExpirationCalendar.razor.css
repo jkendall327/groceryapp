@@ -1,0 +1,84 @@
+.calendar-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.calendar-day {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    width: 150px;
+    margin-bottom: 20px;
+    background-color: #fff;
+}
+
+.past-day {
+    background-color: #f0f0f0;
+}
+
+.calendar-day h4 {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.calendar-day p {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.calendar-day ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.calendar-day li {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.calendar-day li input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.bulk-edit-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.bulk-edit-button:disabled {
+    background-color: #ffc947;
+    cursor: not-allowed;
+}
+
+.feedback {
+    margin-top: 15px;
+    color: #e53935;
+    font-weight: bold;
+}
+
+.structured-data h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.product-info p {
+    margin: 3px 0;
+}
+
+.low-confidence {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #ffe0b2;
+    border: 1px solid #ff9800;
+    border-radius: 5px;
+    color: #e65100;
+    font-weight: bold;
+}
